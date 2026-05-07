@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pádel Comunidad</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --lime:#d4f74e;--lime-dim:#a8c53a;
+  --bg:#0a0d07;--card:#111608;--card2:#181f0e;
+  --border:#252e14;--border2:#333f1a;
+  --text:#eef5d8;--muted:#6b7d45;--muted2:#4a5830;
+  --orange:#f5a742;--red:#f55a42;--blue:#42b8f5;
+  --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-size:15px}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
+
+/* LAYOUT */
+#appShell{display:none;flex-direction:column;height:100vh;max-width:430px;margin:0 auto}
+.screen{flex:1;overflow-y:auto;padding:0 16px 90px;display:none;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+.screen.active{display:block}
+.screen-inner{padding-top:16px}
+
+/* LOGIN */
+#loginScreen{display:flex;flex-direction:column;align-items:center;height:100vh;max-width:430px;margin:0 auto;padding:24px 22px 32px;overflow-y:auto;scrollbar-width:none}
+#loginScreen::-webkit-scrollbar{display:none}
+.login-logo{font-family:'Syne',sans-serif;font-size:2.8rem;font-weight:800;color:var(--lime);line-height:1;letter-spacing:-1px;text-align:center;margin-top:8px}
+.login-logo span{display:block;font-size:.72rem;font-weight:700;letter-spacing:6px;color:var(--muted);margin-top:4px;text-transform:uppercase}
+.login-court{font-size:3.5rem;margin:16px 0 14px;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.login-title{font-size:.95rem;color:var(--muted);margin-bottom:18px;text-align:center}
+.login-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%}
+.street-btn{background:var(--card2);border:1.5px solid var(--border2);border-radius:var(--r);padding:13px 10px;text-align:center;cursor:pointer;transition:all .2s;color:var(--text)}
+.street-btn:hover,.street-btn.sel{background:var(--lime);border-color:var(--lime);color:var(--bg)}
+.street-btn .sb-icon{font-size:1.3rem;margin-bottom:4px}
+.street-btn .sb-name{font-size:.78rem;font-weight:600}
+.login-field{width:100%;margin-top:13px}
+.login-field label{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:7px}
+.num-scroll{display:flex;gap:7px;overflow-x:auto;padding:3px 2px 5px;scrollbar-width:none}
+.num-scroll::-webkit-scrollbar{display:none}
+.num-btn{flex-shrink:0;min-width:40px;background:var(--card2);border:1.5px solid var(--border2);border-radius:11px;padding:8px 5px;text-align:center;cursor:pointer;font-size:.88rem;font-weight:700;transition:all .2s;color:var(--text)}
+.num-btn:hover,.num-btn.sel{background:var(--lime);border-color:var(--lime);color:var(--bg)}
+.door-sub-label{font-size:.62rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted2);margin:8px 0 5px}
+.door-row{display:flex;gap:7px}
+.piso-btn,.letra-btn{flex:1;background:var(--card2);border:1.5px solid var(--border2);border-radius:11px;padding:9px 4px;text-align:center;cursor:pointer;font-size:.82rem;font-weight:600;transition:all .2s;color:var(--text)}
+.piso-btn:hover,.piso-btn.sel,.letra-btn:hover,.letra-btn.sel{background:var(--lime);border-color:var(--lime);color:var(--bg)}
+.door-preview{margin-top:9px;text-align:center;font-size:.82rem;color:var(--muted);min-height:18px}
+.door-preview b{color:var(--lime)}
+.btn-enter{width:100%;margin-top:18px;background:var(--lime);color:var(--bg);border:none;border-radius:var(--r);padding:14px;font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.btn-enter:hover{background:#e0ff60;transform:translateY(-2px)}
+.btn-enter:disabled{opacity:.3;cursor:not-allowed;transform:none}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;background:var(--bg);z-index:10;padding:13px 16px 9px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.topbar-logo{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;color:var(--lime)}
+.topbar-user{display:flex;align-items:center;gap:8px;cursor:pointer}
+.topbar-user span{background:var(--card2);border:1px solid var(--border2);border-radius:50px;padding:4px 11px;color:var(--text);font-size:.76rem}
+.notif-dot{width:8px;height:8px;background:var(--red);border-radius:50%;display:none;flex-shrink:0}
+.notif-dot.show{display:block}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:20;padding:8px 0 16px}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.6rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;padding:6px 0;transition:color .2s;position:relative}
+.nav-item.active{color:var(--lime)}
+.nav-icon{font-size:1.25rem;line-height:1}
+.nav-badge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;border-radius:50px;font-size:.55rem;padding:1px 5px;font-weight:700;display:none}
+.nav-badge.show{display:block}
+
+/* DATE STRIP */
+.date-strip{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px;scrollbar-width:none;margin-bottom:4px}
+.date-strip::-webkit-scrollbar{display:none}
+.day-pill{flex-shrink:0;padding:10px 16px;border-radius:50px;border:1.5px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;text-align:center;transition:all .2s}
+.day-pill .dp-dd{font-size:1.1rem;font-weight:700;color:var(--text);display:block;line-height:1.2}
+.day-pill .dp-dw{font-size:.6rem;text-transform:uppercase;letter-spacing:1px}
+.day-pill.active{background:var(--lime);border-color:var(--lime)}
+.day-pill.active .dp-dd,.day-pill.active .dp-dw{color:var(--bg)}
+
+/* SLOTS */
+.slot{display:flex;align-items:center;gap:12px;background:var(--card2);border:1.5px solid var(--border);border-radius:16px;padding:12px 14px;margin-bottom:8px;transition:all .2s}
+.slot.free:hover{border-color:var(--lime);transform:translateX(2px);cursor:pointer}
+.slot-bar{width:3px;height:36px;border-radius:3px;flex-shrink:0}
+.bar-free{background:var(--lime)}.bar-mine{background:var(--orange)}
+.bar-occ{background:var(--muted2)}.bar-past{background:var(--border2)}
+.slot-time{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;min-width:52px;color:var(--text)}
+.slot-info{flex:1;min-width:0}
+.slot-tag{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.tag-free{color:var(--lime)}.tag-mine{color:var(--orange)}
+.tag-occ{color:var(--muted)}.tag-past{color:var(--muted2)}
+.slot-detail{font-size:.8rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot-btn{padding:7px 14px;border-radius:10px;font-size:.75rem;font-weight:700;border:none;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;white-space:nowrap;flex-shrink:0}
+.btn-res{background:var(--lime);color:var(--bg)}.btn-res:hover{background:#e0ff60}
+.btn-can{background:transparent;color:var(--orange);border:1.5px solid var(--orange)}.btn-can:hover{background:#f5a74222}
+.btn-dis{background:transparent;color:var(--muted2);border:1.5px solid var(--border);cursor:default}
+
+/* NEXT CARD */
+.next-card{background:linear-gradient(135deg,#1a2408,#252e10);border:1.5px solid var(--lime);border-radius:20px;padding:16px 20px;display:none;margin-bottom:14px}
+.next-card.show{display:flex;gap:14px;align-items:center;animation:fadeUp .3s ease}
+.next-icon{font-size:2rem}
+.next-label{font-size:.63rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted)}
+.next-time{font-family:'Syne',sans-serif;font-size:1.4rem;color:var(--lime);font-weight:800}
+.next-detail{font-size:.78rem;color:var(--muted);margin-top:2px}
+
+/* SEC TITLE */
+.sec-title{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin:20px 0 10px}
+
+/* MATCH CARDS */
+.match-card{background:var(--card2);border:1.5px solid var(--border2);border-radius:20px;padding:16px;margin-bottom:12px}
+.match-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.match-time{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800}
+.match-date{font-size:.72rem;color:var(--muted);margin-top:2px}
+.match-host{font-size:.8rem;color:var(--muted);margin-bottom:10px}
+.level-badge{display:inline-block;padding:4px 12px;border-radius:50px;font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.level-bajo{background:#1a2e0a;color:#7dd65a;border:1px solid #3a5a22}
+.level-intermedio{background:#2a2008;color:#f5c842;border:1px solid #5a4a22}
+.level-alto{background:#2e0a0a;color:#f5564a;border:1px solid #5a2222}
+.players-row{display:flex;gap:8px;margin:10px 0}
+.player-slot{width:36px;height:36px;border-radius:50%;border:2px solid var(--border2);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:1rem}
+.player-slot.filled{border-color:var(--muted2)}
+.player-slot.empty{border-style:dashed;font-size:.85rem}
+.match-footer{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.btn-join{background:var(--lime);color:var(--bg);border:none;border-radius:10px;padding:9px 18px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.btn-join:hover{background:#e0ff60}
+.btn-joined{background:transparent;color:var(--orange);border:1.5px solid var(--orange);border-radius:10px;padding:8px 14px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif}
+.my-match-note{font-size:.78rem;color:var(--muted);padding:6px 0}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:#000c;backdrop-filter:blur(8px);z-index:100;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex;animation:fadeIn .2s ease}
+.modal{background:var(--card2);border:1.5px solid var(--border2);border-radius:28px 28px 0 0;padding:24px 20px 44px;width:100%;max-width:430px;animation:slideUp .3s ease}
+.modal-handle{width:36px;height:4px;background:var(--muted2);border-radius:2px;margin:0 auto 20px}
+.modal-title{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:4px}
+.modal-sub{font-size:.83rem;color:var(--muted);margin-bottom:18px}
+.m-field{margin-bottom:16px}
+.m-field label{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px}
+.opt-row{display:flex;gap:8px}
+.opt-btn{flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;font-family:'Outfit',sans-serif;text-align:center}
+.opt-btn:hover{border-color:var(--muted)}
+.opt-btn.sel{background:var(--lime);border-color:var(--lime);color:var(--bg)}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:14px}
+.tl{font-size:.85rem;font-weight:600}.ts{font-size:.73rem;color:var(--muted);margin-top:2px}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--border2);border-radius:50px;cursor:pointer;transition:.3s}
+.toggle-track::after{content:'';position:absolute;left:3px;top:3px;width:18px;height:18px;background:var(--muted);border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-track{background:var(--lime)}
+.toggle input:checked+.toggle-track::after{transform:translateX(20px);background:var(--bg)}
+.level-row{display:flex;gap:8px}
+.lv-btn{flex:1;padding:10px 4px;border-radius:10px;border:1.5px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;font-size:.78rem;font-weight:600;text-align:center;transition:all .2s;font-family:'Outfit',sans-serif}
+.lv-btn:hover{border-color:var(--muted)}
+.lv-btn.sel.bajo{background:#1a2e0a;border-color:#3a5a22;color:#7dd65a}
+.lv-btn.sel.intermedio{background:#2a2008;border-color:#5a4a22;color:#f5c842}
+.lv-btn.sel.alto{background:#2e0a0a;border-color:#5a2222;color:#f5564a}
+.btn-confirm{width:100%;background:var(--lime);color:var(--bg);border:none;border-radius:14px;padding:15px;font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800;letter-spacing:1px;cursor:pointer;margin-top:16px;transition:all .2s}
+.btn-confirm:hover{background:#e0ff60;transform:translateY(-2px)}
+.btn-modal-cancel{width:100%;background:transparent;border:1.5px solid var(--border2);border-radius:14px;padding:12px;color:var(--muted);font-family:'Outfit',sans-serif;font-size:.88rem;cursor:pointer;margin-top:8px;transition:all .2s}
+.btn-modal-cancel:hover{border-color:var(--muted);color:var(--text)}
+
+/* NOTIFS */
+.notif-item{display:flex;gap:12px;align-items:flex-start;padding:14px;background:var(--card2);border:1.5px solid var(--border);border-radius:14px;margin-bottom:8px}
+.notif-icon{font-size:1.2rem;flex-shrink:0}
+.notif-text{font-size:.84rem;line-height:1.5}
+.notif-time{font-size:.7rem;color:var(--muted);margin-top:3px}
+.notif-new{border-color:var(--lime)}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:var(--muted);font-size:.85rem}
+.spinner{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--lime);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--lime);color:var(--bg);padding:11px 22px;border-radius:50px;font-weight:700;font-size:.85rem;opacity:0;transition:all .3s;z-index:300;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:.88rem;line-height:1.7}
+.empty-icon{font-size:2.8rem;margin-bottom:10px}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-logo">PÁDEL<span>Residencial</span></div>
+  <div class="login-court">🎾</div>
+  <div class="login-title">¿Desde qué dirección entras?</div>
+  <div class="login-grid">
+    <div class="street-btn" onclick="selStreet('Avendaño',this)"><div class="sb-icon">🏠</div><div class="sb-name">Avendaño</div></div>
+    <div class="street-btn" onclick="selStreet('Juan Cuadrado',this)"><div class="sb-icon">🏡</div><div class="sb-name">Juan Cuadrado</div></div>
+    <div class="street-btn" onclick="selStreet('Otxoa Ortiz',this)" style="grid-column:span 2"><div class="sb-icon">🏘️</div><div class="sb-name">Otxoa Ortiz</div></div>
+  </div>
+  <div class="login-field">
+    <label>Número de casa</label>
+    <div class="num-scroll" id="numRow"></div>
+  </div>
+  <div class="login-field">
+    <label>Puerta</label>
+    <div class="door-sub-label">Piso</div>
+    <div class="door-row">
+      <div class="piso-btn" onclick="selPiso('Bajo',this)">Bajo</div>
+      <div class="piso-btn" onclick="selPiso('2',this)">2º</div>
+      <div class="piso-btn" onclick="selPiso('3',this)">3º</div>
+    </div>
+    <div class="door-sub-label">Letra</div>
+    <div class="door-row">
+      <div class="letra-btn" onclick="selLetra('A',this)">A</div>
+      <div class="letra-btn" onclick="selLetra('B',this)">B</div>
+      <div class="letra-btn" onclick="selLetra('C',this)">C</div>
+    </div>
+    <div class="door-preview" id="doorPreview">Selecciona piso y letra</div>
+  </div>
+  <button class="btn-enter" id="btnEnter" disabled onclick="doLogin()">ENTRAR →</button>
+</div>
+
+<!-- APP -->
+<div id="appShell">
+  <div class="topbar">
+    <div class="topbar-logo">🎾 PÁDEL</div>
+    <div class="topbar-user" onclick="doLogout()">
+      <span id="topbarUser">—</span>
+      <div class="notif-dot" id="notifDot"></div>
+    </div>
+  </div>
+
+  <div class="screen active" id="scReservas">
+    <div class="screen-inner">
+      <div class="next-card" id="nextCard">
+        <div class="next-icon">🎾</div>
+        <div>
+          <div class="next-label">Tu próxima reserva</div>
+          <div class="next-time" id="nextTime">—</div>
+          <div class="next-detail" id="nextDetail">—</div>
+        </div>
+      </div>
+      <div class="date-strip" id="dateStrip"></div>
+      <div class="sec-title">DISPONIBILIDAD</div>
+      <div id="slotList"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="scPartidos">
+    <div class="screen-inner">
+      <div class="sec-title">PARTIDOS ABIERTOS</div>
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:14px">Partidos donde falta gente — únete.</div>
+      <div id="matchList"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="scNotifs">
+    <div class="screen-inner">
+      <div class="sec-title">NOTIFICACIONES</div>
+      <div id="notifList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RESERVAR -->
+<div class="modal-bg" id="modalRes" onclick="bgClose(event,'modalRes')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Reservar Pista</div>
+    <div class="modal-sub" id="modalResSub">—</div>
+    <div class="m-field">
+      <label>Número de jugadores</label>
+      <div class="opt-row">
+        <div class="opt-btn" id="jug2" onclick="selJug(2,this)">2</div>
+        <div class="opt-btn" id="jug3" onclick="selJug(3,this)">3</div>
+        <div class="opt-btn sel" id="jug4" onclick="selJug(4,this)">4</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="toggle-row" id="toggleRow" style="display:none">
+      <div><div class="tl">Abrir partido</div><div class="ts">Permite que vecinos se unan</div></div>
+      <label class="toggle"><input type="checkbox" id="toggleOpen" onchange="onToggleOpen()"><span class="toggle-track"></span></label>
+    </div>
+    <div id="levelSection" style="display:none">
+      <div class="m-field">
+        <label>Nivel del partido</label>
+        <div class="level-row">
+          <div class="lv-btn" onclick="selLevel('bajo',this)">🟢 Bajo</div>
+          <div class="lv-btn" onclick="selLevel('intermedio',this)">🟡 Intermedio</div>
+          <div class="lv-btn" onclick="selLevel('alto',this)">🔴 Alto</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-confirm" onclick="confirmBooking()">CONFIRMAR RESERVA</button>
+    <button class="btn-modal-cancel" onclick="closeModal('modalRes')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL CANCELAR -->
+<div class="modal-bg" id="modalCancel" onclick="bgClose(event,'modalCancel')">
+  <div class="modal" style="padding-bottom:32px">
+    <div class="modal-handle"></div>
+    <div class="modal-title">¿Cancelar reserva?</div>
+    <div class="modal-sub">Esta acción avisará a todos los vecinos de que la pista queda libre.</div>
+    <button class="btn-confirm" onclick="doCancel()" style="background:var(--red);color:#fff;margin-top:8px">SÍ, CANCELAR</button>
+    <button class="btn-modal-cancel" onclick="closeModal('modalCancel')">Volver</button>
+  </div>
+</div>
+
+<!-- MODAL BROADCAST OK -->
+<div class="modal-bg" id="modalBroadcastOk">
+  <div class="modal" style="padding-bottom:32px;text-align:center">
+    <div style="font-size:3rem;margin-bottom:12px">✅</div>
+    <div class="modal-title" style="text-align:center">Pista reservada</div>
+    <div class="modal-sub" style="text-align:center;margin-bottom:20px" id="broadcastOkText">—</div>
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:20px;text-align:left">
+      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px">Notificación enviada a vecinos</div>
+      <div style="font-size:.85rem;color:var(--text);line-height:1.5" id="broadcastOkMsg">—</div>
+    </div>
+    <button class="btn-confirm" onclick="closeModal('modalBroadcastOk')" style="margin-top:0">ENTENDIDO</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav" id="bottomNav" style="display:none">
+  <div class="nav-item active" id="nav-reservas" onclick="goScreen('reservas')"><div class="nav-icon">📅</div>Reservas</div>
+  <div class="nav-item" id="nav-partidos" onclick="goScreen('partidos')"><div class="nav-icon">⚡</div>Partidos<div class="nav-badge" id="badgePartidos"></div></div>
+  <div class="nav-item" id="nav-notifs" onclick="goScreen('notifs')"><div class="nav-icon">🔔</div>Avisos<div class="nav-badge" id="badgeNotifs"></div></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════════════════════════════════
+const SB_URL = 'https://btpvrmdpnvpfwgmofhvt.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ0cHZybWRwbnZwZndnbW9maHZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTcxNTcsImV4cCI6MjA5MTc3MzE1N30.Scm90uw6unnlYWO34spgU-AS2zqGR7dAAgLEQeYUZqI';
+
+async function sbFetch(path, opts={}){
+  const res = await fetch(`${SB_URL}/rest/v1/${path}`, {
+    headers:{
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer !== undefined ? opts.prefer : 'return=representation',
+      ...(opts.headers||{})
+    },
+    method: opts.method || 'GET',
+    body: opts.body || undefined
+  });
+  if(!res.ok){
+    const err = await res.text();
+    throw new Error(`${res.status}: ${err}`);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+// BOOKINGS
+async function sbGetBookings(){
+  // Fetch all bookings for the next 3 days
+  const keys = [0,1,2].map(i=>dayKey(i));
+  const filter = keys.map(k=>`day_key.eq.${k}`).join(',');
+  return await sbFetch(`bookings?or=(${filter})&order=hour.asc`) || [];
+}
+async function sbInsertBooking(bk){
+  return await sbFetch('bookings', { method:'POST', body: JSON.stringify(bk) });
+}
+async function sbUpdateBooking(id, patch){
+  return await sbFetch(`bookings?id=eq.${encodeURIComponent(id)}`, {
+    method:'PATCH', body: JSON.stringify(patch), prefer:'return=representation'
+  });
+}
+async function sbDeleteBooking(id){
+  return await sbFetch(`bookings?id=eq.${encodeURIComponent(id)}`, { method:'DELETE', prefer:'' });
+}
+
+// BROADCASTS
+async function sbGetBroadcasts(afterTs){
+  return await sbFetch(`broadcasts?ts=gt.${afterTs}&order=ts.asc&limit=50`) || [];
+}
+async function sbInsertBroadcast(msg){
+  return await sbFetch('broadcasts', {
+    method:'POST',
+    body: JSON.stringify({ msg, from_id: ME.id, ts: Date.now() })
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════════
+const HOURS = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00',
+               '15:00','16:00','17:00','18:00','19:00','20:00','21:00'];
+const DAYS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MON_ES  = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+let ME = { street:'', num:'', piso:'', letra:'', label:'', id:'' };
+let BOOKINGS = []; // array of booking objects from Supabase
+let myNotifs = []; // stored in memory + shared via broadcasts
+let lastBroadcastTs = 0;
+let selectedDay = 0;
+
+let _street='', _num='', _piso='', _letra='';
+let pendingHour='', pendingDay=0, jugadoresVal=4, levelVal='', isOpen=false;
+let _cancelId='';
+let pollTimer=null;
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════
+function dayKey(offset){
+  const d=new Date(); d.setDate(d.getDate()+offset);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function dateLabel(offset){
+  const d=new Date(); d.setDate(d.getDate()+offset);
+  return {dd:d.getDate(),dw:DAYS_ES[d.getDay()],full:`${DAYS_ES[d.getDay()]} ${d.getDate()} ${MON_ES[d.getMonth()]}`};
+}
+function isPast(offset,hour){
+  const now=new Date(); const d=new Date(); d.setDate(d.getDate()+offset);
+  const[h,m]=hour.split(':').map(Number); d.setHours(h,m,0,0); return d<=now;
+}
+function nextHour(h){const[hh]=h.split(':').map(Number);return`${String(hh+1).padStart(2,'0')}:00`;}
+function bookingId(dk,h){return`${dk}_${h}`;}
+
+function getBooking(offset,hour){
+  const dk=dayKey(offset);
+  return BOOKINGS.find(b=>b.day_key===dk&&b.hour===hour)||null;
+}
+function myBookingOnDay(offset){
+  const dk=dayKey(offset);
+  // Own booking OR a match you've joined
+  return BOOKINGS.find(b=>b.day_key===dk&&(b.user_id===ME.id||b.joined.includes(ME.id)))||null;
+}
+
+// ══════════════════════════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════════════════════════
+(function buildNums(){
+  const row=document.getElementById('numRow');
+  for(let i=1;i<=31;i++){
+    const d=document.createElement('div');
+    d.className='num-btn'; d.textContent=i;
+    d.onclick=(function(n,el){return function(){
+      _num=String(n);
+      document.querySelectorAll('.num-btn').forEach(b=>b.classList.remove('sel'));
+      el.classList.add('sel'); checkReady();
+    };})(i,d);
+    row.appendChild(d);
+  }
+})();
+
+function selStreet(val,el){_street=val;document.querySelectorAll('.street-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');checkReady();}
+function selPiso(val,el){_piso=val;document.querySelectorAll('.piso-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');updateDoorPreview();checkReady();}
+function selLetra(val,el){_letra=val;document.querySelectorAll('.letra-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');updateDoorPreview();checkReady();}
+function updateDoorPreview(){
+  const p=document.getElementById('doorPreview');
+  const ds=_piso==='Bajo'?`Bajo ${_letra}`:`${_piso}${_letra}`;
+  if(_piso&&_letra)p.innerHTML=`Puerta: <b>${ds}</b>`;
+  else if(_piso)p.innerHTML=`Piso: <b>${_piso==='Bajo'?'Bajo':_piso+'º'}</b> — falta letra`;
+  else if(_letra)p.innerHTML=`Letra: <b>${_letra}</b> — falta piso`;
+  else p.textContent='Selecciona piso y letra';
+}
+function checkReady(){document.getElementById('btnEnter').disabled=!(_street&&_num&&_piso&&_letra);}
+
+async function doLogin(){
+  const doorStr=_piso==='Bajo'?`Bajo ${_letra}`:`${_piso}${_letra}`;
+  const label=`${_street} ${_num}, ${doorStr}`;
+  ME={street:_street,num:_num,piso:_piso,letra:_letra,label,id:label.replace(/[\s,]/g,'_')};
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appShell').style.display='flex';
+  document.getElementById('bottomNav').style.display='flex';
+  document.getElementById('topbarUser').textContent=ME.label;
+
+  // Load last seen broadcast ts from memory
+  lastBroadcastTs = parseInt(sessionStorage.getItem('lbts_'+ME.id)||'0');
+
+  showLoading('slotList');
+  try {
+    BOOKINGS = await sbGetBookings();
+  } catch(e){
+    console.error('Supabase error:', e.message);
+    showToast('⚠️ ' + (e.message.includes('401')||e.message.includes('403') ? 'Error de autenticación — revisa la API key' : 'Error al cargar reservas: ' + e.message.slice(0,60)));
+  }
+
+  buildDateStrip(); buildSlots();
+  await checkBroadcasts();
+  startPolling();
+}
+
+function doLogout(){
+  if(!confirm('¿Cerrar sesión?')) return;
+  stopPolling();
+  ME={street:'',num:'',piso:'',letra:'',label:'',id:''};
+  _street='';_num='';_piso='';_letra='';BOOKINGS=[];myNotifs=[];
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('bottomNav').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.querySelectorAll('.street-btn,.num-btn,.piso-btn,.letra-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('doorPreview').textContent='Selecciona piso y letra';
+  document.getElementById('btnEnter').disabled=true;
+}
+
+function showLoading(id){
+  document.getElementById(id).innerHTML=`<div class="loading"><div class="spinner"></div>Cargando...</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// DATE STRIP
+// ══════════════════════════════════════════════════════════════
+function buildDateStrip(){
+  const strip=document.getElementById('dateStrip'); strip.innerHTML='';
+  for(let i=0;i<3;i++){
+    const{dd,dw}=dateLabel(i);
+    const p=document.createElement('div');
+    p.className='day-pill'+(i===selectedDay?' active':'');
+    p.innerHTML=`<span class="dp-dd">${dd}</span><span class="dp-dw">${dw}</span>`;
+    p.onclick=()=>{selectedDay=i;buildDateStrip();buildSlots();};
+    strip.appendChild(p);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// SLOTS
+// ══════════════════════════════════════════════════════════════
+function buildSlots(){
+  const list=document.getElementById('slotList'); list.innerHTML='';
+  const myEntry=myBookingOnDay(selectedDay);
+
+  HOURS.forEach(h=>{
+    const bk=getBooking(selectedDay,h);
+    const past=isPast(selectedDay,h);
+    const isMine=bk&&bk.user_id===ME.id;
+    const isJoined=bk&&!isMine&&bk.joined.includes(ME.id);
+    const canBook=selectedDay<=2;
+
+    let barClass,tagClass,tagText,detail,btnHTML;
+
+    if(past){
+      barClass='bar-past';tagClass='tag-past';tagText='Pasado';
+      detail=bk?bk.label:'—';
+      btnHTML=`<button class="slot-btn btn-dis" disabled>—</button>`;
+    } else if(isMine){
+      barClass='bar-mine';tagClass='tag-mine';tagText='Tu reserva';
+      detail=`${bk.jugadores} jug.`+(bk.open?` · 🟢 abierto (${bk.joined.length}/${bk.jugadores})`:'');
+      btnHTML=`<button class="slot-btn btn-can" data-id="${bk.id}" data-day="${selectedDay}">Cancelar</button>`;
+    } else if(isJoined){
+      barClass='bar-mine';tagClass='tag-mine';tagText='Te has apuntado';
+      detail=`Partido de ${bk.label} · ${bk.jugadores} jug.`;
+      btnHTML=`<button class="slot-btn btn-can" onclick="leaveMatch('${bk.id}')">Salir</button>`;
+    } else if(bk){
+      barClass='bar-occ';tagClass='tag-occ';tagText='Ocupado';
+      detail=bk.label;
+      btnHTML=`<button class="slot-btn btn-dis" disabled>Ocupado</button>`;
+    } else {
+      barClass='bar-free';tagClass='tag-free';tagText='Libre';detail='Disponible';
+      if(!canBook) btnHTML=`<button class="slot-btn btn-dis" disabled>+48h</button>`;
+      else if(myEntry) btnHTML=`<button class="slot-btn btn-dis" disabled>1/día</button>`;
+      else btnHTML=`<button class="slot-btn btn-res" onclick="openModal('${h}',event)">Reservar</button>`;
+    }
+
+    const slot=document.createElement('div');
+    slot.className=`slot${(!bk&&!past&&canBook&&!myEntry)?' free':''}`;
+    slot.innerHTML=`
+      <div class="slot-bar ${barClass}"></div>
+      <div class="slot-time">${h}</div>
+      <div class="slot-info">
+        <div class="slot-tag ${tagClass}">${tagText} · hasta ${nextHour(h)}</div>
+        <div class="slot-detail">${detail}</div>
+      </div>${btnHTML}`;
+    list.appendChild(slot);
+
+    const cb=slot.querySelector('[data-id]');
+    if(cb) cb.addEventListener('click',function(){
+      _cancelId=this.dataset.id;
+      document.getElementById('modalCancel').classList.add('open');
+    });
+  });
+  updateNextCard();
+  updateMatchBadge();
+}
+
+// ══════════════════════════════════════════════════════════════
+// NEXT CARD
+// ══════════════════════════════════════════════════════════════
+function updateNextCard(){
+  const card=document.getElementById('nextCard');
+  const now=new Date(); let found=null;
+  outer: for(let i=0;i<3;i++){
+    const dk=dayKey(i);
+    for(const h of HOURS){
+      // Show card if: own booking OR joined someone else's open match
+      const bk=BOOKINGS.find(b=>b.day_key===dk&&b.hour===h&&(b.user_id===ME.id||b.joined.includes(ME.id)));
+      if(bk){
+        const d=new Date(); d.setDate(d.getDate()+i);
+        const[hh,mm]=h.split(':').map(Number); d.setHours(hh,mm,0,0);
+        if(d>now){found={i,h,bk};break outer;}
+      }
+    }
+  }
+  if(found){
+    const isOwn = found.bk.user_id===ME.id;
+    document.getElementById('nextTime').textContent=`${found.h} – ${nextHour(found.h)}`;
+    document.getElementById('nextDetail').textContent=
+      isOwn
+        ? `${dateLabel(found.i).full} · ${found.bk.jugadores} jugadores`
+        : `${dateLabel(found.i).full} · Partido de ${found.bk.label}`;
+    card.classList.add('show');
+  } else card.classList.remove('show');
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODAL RESERVAR
+// ══════════════════════════════════════════════════════════════
+function openModal(h,e){
+  e.stopPropagation();
+  pendingHour=h; pendingDay=selectedDay;
+  jugadoresVal=4; levelVal=''; isOpen=false;
+  const{full}=dateLabel(selectedDay);
+  document.getElementById('modalResSub').textContent=`${full} · ${h} – ${nextHour(h)}`;
+  document.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('jug4').classList.add('sel');
+  document.getElementById('toggleOpen').checked=false;
+  document.getElementById('toggleRow').style.display='none';
+  document.getElementById('levelSection').style.display='none';
+  document.querySelectorAll('.lv-btn').forEach(b=>b.className='lv-btn');
+  document.getElementById('modalRes').classList.add('open');
+}
+function selJug(n,el){
+  jugadoresVal=n;
+  document.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('toggleRow').style.display=n<4?'flex':'none';
+  if(n>=4){isOpen=false;document.getElementById('toggleOpen').checked=false;document.getElementById('levelSection').style.display='none';levelVal='';}
+}
+function onToggleOpen(){
+  isOpen=document.getElementById('toggleOpen').checked;
+  document.getElementById('levelSection').style.display=isOpen?'block':'none';
+  if(!isOpen){levelVal='';document.querySelectorAll('.lv-btn').forEach(b=>b.className='lv-btn');}
+}
+function selLevel(v,el){
+  levelVal=v;
+  document.querySelectorAll('.lv-btn').forEach(b=>b.className='lv-btn');
+  el.className=`lv-btn sel ${v}`;
+}
+
+async function confirmBooking(){
+  if(isOpen&&!levelVal){showToast('⚠️ Elige el nivel del partido');return;}
+  closeModal('modalRes');
+  showToast('⏳ Guardando reserva...');
+
+  const dk=dayKey(pendingDay);
+  const id=bookingId(dk,pendingHour);
+  const bkData={
+    id, day_key:dk, hour:pendingHour,
+    user_id:ME.id, label:ME.label,
+    jugadores:jugadoresVal, open:isOpen,
+    level:levelVal, joined:isOpen?[ME.id]:[]
+  };
+
+  try {
+    await sbInsertBooking(bkData);
+    BOOKINGS.push(bkData);
+    buildSlots();
+
+    if(isOpen){
+      const spotsNeeded = jugadoresVal - bkData.joined.length; // plazas que faltan = total - ya apuntados
+      const lvText=levelVal?` · Nivel ${levelVal.charAt(0).toUpperCase()+levelVal.slice(1)}`:'';
+      const{full}=dateLabel(pendingDay);
+      const broadcastMsg=`⚡ Partido abierto · ${ME.label} busca ${spotsNeeded} jugador${spotsNeeded>1?'es':''} para el ${full} a las ${pendingHour}${lvText}. ¡Únete desde Partidos!`;
+      await sbInsertBroadcast(broadcastMsg);
+      document.getElementById('broadcastOkText').textContent=`${full} · ${pendingHour} – ${nextHour(pendingHour)} · ${jugadoresVal} jugadores`;
+      document.getElementById('broadcastOkMsg').textContent=broadcastMsg;
+      document.getElementById('modalBroadcastOk').classList.add('open');
+    } else {
+      showToast('✅ Pista reservada correctamente');
+    }
+  } catch(e){
+    showToast('❌ Error al reservar. Inténtalo de nuevo.');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// CANCELAR
+// ══════════════════════════════════════════════════════════════
+async function doCancel(){
+  closeModal('modalCancel');
+  showToast('⏳ Cancelando...');
+  const bk=BOOKINGS.find(b=>b.id===_cancelId);
+  if(!bk){buildSlots();return;}
+  const offset=BOOKINGS.indexOf(bk);
+  const dk=bk.day_key;
+  // Find dateLabel offset from dayKey
+  let dayOff=0;
+  for(let i=0;i<3;i++){if(dayKey(i)===dk){dayOff=i;break;}}
+  const{full}=dateLabel(dayOff);
+
+  try {
+    await sbDeleteBooking(_cancelId);
+    BOOKINGS=BOOKINGS.filter(b=>b.id!==_cancelId);
+
+    // Broadcast
+    const msg=bk.open
+      ?`❌ Partido cancelado · ${ME.label} canceló su partido del ${full} a las ${bk.hour}. ¡Pista libre!`
+      :`🔔 Pista libre · ${full} a las ${bk.hour} — ${ME.label} canceló su reserva`;
+    await sbInsertBroadcast(msg);
+
+    buildSlots();
+    showToast('🗑 Reserva cancelada');
+  } catch(e){
+    showToast('❌ Error al cancelar');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// PARTIDOS ABIERTOS
+// ══════════════════════════════════════════════════════════════
+function buildMatches(){
+  const list=document.getElementById('matchList'); list.innerHTML='';
+  let count=0;
+  const openBks=BOOKINGS.filter(b=>b.open&&b.joined.length<b.jugadores);
+  // sort by day+hour
+  openBks.sort((a,b)=>a.day_key.localeCompare(b.day_key)||a.hour.localeCompare(b.hour));
+
+  openBks.forEach(bk=>{
+    // find offset
+    let dayOff=0;
+    for(let i=0;i<3;i++){if(dayKey(i)===bk.day_key){dayOff=i;break;}}
+    if(isPast(dayOff,bk.hour)) return;
+    count++;
+    const{full}=dateLabel(dayOff);
+    const isMine=bk.user_id===ME.id;
+    const iJoined=bk.joined.includes(ME.id);
+    const spots=bk.jugadores-bk.joined.length;
+
+    let playersHTML='';
+    for(let s=0;s<bk.jugadores;s++){
+      if(s<bk.joined.length){
+        const pid=bk.joined[s];
+        playersHTML+=`<div class="player-slot filled" title="${pid.replace(/_/g,' ')}">${pid===ME.id?'🙋':'👤'}</div>`;
+      } else playersHTML+=`<div class="player-slot empty">➕</div>`;
+    }
+
+    let footerHTML='';
+    if(isMine) footerHTML=`<span class="my-match-note">Es tu partido · ${spots} plaza${spots>1?'s':''} libre${spots>1?'s':''}</span>`;
+    else if(iJoined) footerHTML=`<button class="btn-joined" onclick="leaveMatch('${bk.id}')">✓ Apuntado — Salir</button>`;
+    else footerHTML=`<button class="btn-join" onclick="joinMatch('${bk.id}')">Unirme →</button>`;
+
+    const mc=document.createElement('div');
+    mc.className='match-card';
+    mc.innerHTML=`
+      <div class="match-header">
+        <div><div class="match-time">${bk.hour} – ${nextHour(bk.hour)}</div><div class="match-date">${full}</div></div>
+        <div class="level-badge level-${bk.level||'bajo'}">${(bk.level||'bajo').toUpperCase()}</div>
+      </div>
+      <div class="match-host">🏠 Organiza: ${bk.label}</div>
+      <div class="players-row">${playersHTML}</div>
+      <div class="match-footer">${footerHTML}</div>`;
+    list.appendChild(mc);
+  });
+
+  if(count===0) list.innerHTML=`<div class="empty"><div class="empty-icon">🎾</div>No hay partidos abiertos.<br><br>Reserva una pista y activa <b style="color:var(--lime)">"Abrir partido"</b>.</div>`;
+
+  const badge=document.getElementById('badgePartidos');
+  if(count>0){badge.textContent=count;badge.classList.add('show');}
+  else badge.classList.remove('show');
+}
+
+function updateMatchBadge(){
+  let c=0;
+  BOOKINGS.forEach(b=>{
+    let off=0;
+    for(let i=0;i<3;i++){if(dayKey(i)===b.day_key){off=i;break;}}
+    if(b.open&&!isPast(off,b.hour)&&b.joined.length<b.jugadores) c++;
+  });
+  const badge=document.getElementById('badgePartidos');
+  if(c>0){badge.textContent=c;badge.classList.add('show');}
+  else badge.classList.remove('show');
+}
+
+async function joinMatch(id){
+  const bk=BOOKINGS.find(b=>b.id===id);
+  if(!bk||bk.joined.includes(ME.id)) return;
+  const newJoined=[...bk.joined,ME.id];
+  try {
+    await sbUpdateBooking(id,{joined:newJoined});
+    bk.joined=newJoined;
+    // notify organiser via broadcast
+    await sbInsertBroadcast(`🎾 ${ME.label} se ha unido al partido de ${bk.label} · ${bk.hour}`);
+    buildMatches(); buildSlots();
+    showToast('✅ ¡Te has unido!');
+  } catch { showToast('❌ Error al unirse'); }
+}
+async function leaveMatch(id){
+  const bk=BOOKINGS.find(b=>b.id===id);
+  if(!bk) return;
+  const newJoined=bk.joined.filter(u=>u!==ME.id);
+  try {
+    await sbUpdateBooking(id,{joined:newJoined});
+    bk.joined=newJoined;
+    buildMatches(); buildSlots();
+    showToast('Saliste del partido');
+  } catch { showToast('❌ Error'); }
+}
+
+// ══════════════════════════════════════════════════════════════
+// BROADCASTS → NOTIFS
+// ══════════════════════════════════════════════════════════════
+async function checkBroadcasts(){
+  try {
+    const msgs=await sbGetBroadcasts(lastBroadcastTs);
+    const newOnes=msgs.filter(m=>m.from_id!==ME.id);
+    if(newOnes.length>0){
+      newOnes.forEach(m=>{
+        myNotifs.unshift({msg:m.msg,ts:m.ts,read:false});
+      });
+      lastBroadcastTs=Math.max(...msgs.map(m=>m.ts));
+      try { sessionStorage.setItem('lbts_'+ME.id, String(lastBroadcastTs)); } catch{}
+      renderNotifBadge();
+    } else if(msgs.length>0){
+      lastBroadcastTs=Math.max(...msgs.map(m=>m.ts));
+      try { sessionStorage.setItem('lbts_'+ME.id, String(lastBroadcastTs)); } catch{}
+    }
+  } catch{}
+}
+
+// ══════════════════════════════════════════════════════════════
+// NOTIFS RENDER
+// ══════════════════════════════════════════════════════════════
+function renderNotifBadge(){
+  const unread=myNotifs.filter(n=>!n.read).length;
+  const badge=document.getElementById('badgeNotifs');
+  const dot=document.getElementById('notifDot');
+  if(unread>0){badge.textContent=unread;badge.classList.add('show');dot.classList.add('show');}
+  else{badge.classList.remove('show');dot.classList.remove('show');}
+}
+function renderNotifs(){
+  const list=document.getElementById('notifList');
+  if(!myNotifs.length){
+    list.innerHTML=`<div class="empty"><div class="empty-icon">🔔</div>Sin notificaciones aún</div>`;return;
+  }
+  list.innerHTML=myNotifs.map(n=>{
+    const icon=n.msg.startsWith('⚡')?'⚡':n.msg.startsWith('❌')?'❌':n.msg.startsWith('🗑')?'🗑':n.msg.startsWith('🔔')?'🔔':n.msg.startsWith('🎾')?'🎾':'📣';
+    return`<div class="notif-item ${n.read?'':'notif-new'}">
+      <div class="notif-icon">${icon}</div>
+      <div style="flex:1;min-width:0">
+        <div class="notif-text">${n.msg}</div>
+        <div class="notif-time">${timeAgo(n.ts)}</div>
+      </div></div>`;
+  }).join('');
+}
+function markNotifsRead(){myNotifs.forEach(n=>n.read=true);renderNotifBadge();}
+function timeAgo(ts){
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return'ahora';if(s<3600)return`hace ${Math.floor(s/60)} min`;
+  if(s<86400)return`hace ${Math.floor(s/3600)} h`;return`hace ${Math.floor(s/86400)} días`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════════════
+function goScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sc'+name.charAt(0).toUpperCase()+name.slice(1)).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='partidos') buildMatches();
+  if(name==='notifs'){renderNotifs();markNotifsRead();}
+}
+
+// ══════════════════════════════════════════════════════════════
+// POLLING — every 10s sync DB + check broadcasts
+// ══════════════════════════════════════════════════════════════
+function startPolling(){
+  pollTimer=setInterval(async()=>{
+    try {
+      const fresh=await sbGetBookings();
+      BOOKINGS=fresh;
+      buildSlots();
+      if(document.getElementById('scPartidos').classList.contains('active')) buildMatches();
+    } catch{}
+    await checkBroadcasts();
+  },10000);
+}
+function stopPolling(){clearInterval(pollTimer);pollTimer=null;}
+
+// ══════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function bgClose(e,id){if(e.target===document.getElementById(id))closeModal(id);}
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
